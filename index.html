@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LAK — Новый лид</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      background: #f7f7fa;
+      color: #17171b;
+      margin: 0;
+      padding: 20px 16px 45px;
+    }
+    main { max-width: 520px; margin: auto; }
+    h1 { font-size: 25px; margin-bottom: 5px; }
+    .sub { color: #777; font-size: 14px; margin-bottom: 25px; }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin: 17px 0 7px;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #dedee5;
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      font: inherit;
+      color: #17171b;
+      outline-color: #8955d7;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    button {
+      width: 100%;
+      margin-top: 25px;
+      padding: 16px;
+      background: #8154d5;
+      color: white;
+      border: 0;
+      border-radius: 13px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    button:disabled { opacity: .55; }
+    #error { color: #b3261e; margin-top: 12px; }
+    .hint { font-size: 12px; color: #888; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>➕ Новый лид</h1>
+  <div class="sub">LAK Sales — карточка клиента</div>
+
+  <form id="leadForm">
+
+    <label>Имя / название проекта *</label>
+    <input id="name" required maxlength="150"
+           placeholder="Татьяна / салон красоты">
+
+    <label>Контакт</label>
+    <input id="contact" maxlength="500"
+           placeholder="@username или ссылка">
+
+    <label>Источник *</label>
+    <select id="source" required>
+      <option value="">Выбери источник</option>
+      <option>Telegram</option>
+      <option>HH</option>
+      <option>Threads</option>
+      <option>Instagram</option>
+      <option>Авито</option>
+      <option>Сарафан</option>
+      <option>Партнёры</option>
+      <option>Другое</option>
+    </select>
+
+    <label>Услуга *</label>
+    <select id="product" required>
+      <option value="">Выбери услугу</option>
+      <option>SMM под ключ</option>
+      <option>Reels</option>
+      <option>Монтаж</option>
+      <option>AI-контент</option>
+      <option>Другое</option>
+    </select>
+
+    <label>Бюджет клиента, ₽</label>
+    <input id="budget" type="number" min="0"
+           step="1" placeholder="80000">
+
+    <label>Следующее действие *</label>
+    <select id="action" required>
+      <option value="">Что нужно сделать?</option>
+      <option>Назначить созвон</option>
+      <option>Провести созвон</option>
+      <option>Отправить КП</option>
+      <option>Follow-up</option>
+      <option>Подготовить аудит</option>
+      <option>Уточнить бюджет</option>
+      <option>Другое</option>
+    </select>
+
+    <label>Когда напомнить?</label>
+    <input id="date" type="date">
+
+    <label>Заметки</label>
+    <textarea id="notes" maxlength="2000"
+      placeholder="Что обсуждали, возражения, договорённости..."></textarea>
+
+    <button id="save" type="submit">✅ Сохранить лида</button>
+    <div id="error"></div>
+    <div class="hint">
+      Данные отправляются твоему Telegram-боту.
+    </div>
+  </form>
+</main>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  const fields = [
+    "name", "contact", "source", "product",
+    "budget", "action", "date", "notes"
+  ];
+
+  document.getElementById("leadForm")
+    .addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const error = document.getElementById("error");
+      error.textContent = "";
+
+      if (!tg || typeof tg.sendData !== "function" ||
+          !tg.initData) {
+        error.textContent =
+          "Открой форму через кнопку Telegram-бота.";
+        return;
+      }
+
+      const values = {};
+      for (const key of fields) {
+        values[key] =
+          document.getElementById(key).value.trim();
+      }
+
+      const data = JSON.stringify({
+        type: "lak_new_lead",
+        values: values
+      });
+
+      // Лимит Telegram WebApp.sendData: 4096 байт
+      if (new TextEncoder().encode(data).length > 4096) {
+        error.textContent =
+          "Слишком длинные заметки. Сократи текст.";
+        return;
+      }
+
+      document.getElementById("save").disabled = true;
+      tg.sendData(data);
+    });
+</script>
+</body>
+</html>
