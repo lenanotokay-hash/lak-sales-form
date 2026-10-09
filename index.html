@@ -139,8 +139,7 @@
       const error = document.getElementById("error");
       error.textContent = "";
 
-      if (!tg || typeof tg.sendData !== "function" ||
-          !tg.initData) {
+      if (!tg || typeof tg.sendData !== "function") {
         error.textContent =
           "Открой форму через кнопку Telegram-бота.";
         return;
